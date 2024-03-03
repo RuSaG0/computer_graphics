@@ -2,77 +2,66 @@ import * as THREE from "three";
 import { TeapotGeometry } from  "three/examples/jsm/geometries/TeapotGeometry.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
-
-const textureLoader = new THREE.TextureLoader();
-const texture = textureLoader.load("/assets/1.jpeg");
-
 const scene = new THREE.Scene();
 
-const scale = 1.3;
+const textureLoader = new THREE.TextureLoader();
+const texture = textureLoader.load("public/assets/1.jpeg");
 
-const spherePolygons = 12;
-
-const sphereGeometry = new THREE.SphereGeometry(
-  scale,
-  spherePolygons,
-  spherePolygons
-);
-
-const sphereMaterial = new THREE.MeshBasicMaterial({
+const sphereMaterial = new THREE.MeshPhongMaterial({
   color: "yellow",
   opacity: 0.5,
   transparent: true,
   map: texture
 });
 
-const teapotGeometry = new TeapotGeometry(2, 4)
+const tetrahedronMaterial = new THREE.MeshPhongMaterial({
+  color: "blue",
+  shininess: 100
+});
 
-const teapotMaterial = new THREE.MeshBasicMaterial({
+const teapotMaterial = new THREE.MeshPhysicalMaterial({
   color: "red",
   roughness: 0.2
 });
 
-const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
-const teapotMesh = new THREE.Mesh(teapotGeometry, teapotMaterial);
-
-const tetrahedronGeometry = new THREE.TetrahedronGeometry(2);
-const tetrahedronMaterial = new THREE.MeshBasicMaterial({
-  color: "blue",
+const markerMaterial = new THREE.MeshBasicMaterial({
+  color: 'orange',
   shininess: 100
 });
-const tetrahedronMesh = new THREE.Mesh(tetrahedronGeometry, tetrahedronMaterial);
 
-const cylinderGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 64);
 const cylinderMaterial = new THREE.MeshBasicMaterial({
   color: "green",
   wireframe: true,
 });
+
+const teapotGeometry = new TeapotGeometry(2, 4)
+const cylinderGeometry = new THREE.CylinderGeometry(0.5, 0.5, 2, 64);
+const sphereGeometry = new THREE.SphereGeometry(1.3, 20, 20);
+const tetrahedronGeometry = new THREE.TetrahedronGeometry(2);
+const markerGeometry = new THREE.SphereGeometry(0.5, 32, 32);
+const light = new THREE.PointLight(0xffffff, 60);
+
+const teapotMesh = new THREE.Mesh(teapotGeometry, teapotMaterial);
 const cylinderMesh = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
-
-
-const markerMaterial = new THREE.MeshBasicMaterial({
-  color: 0xfff000,
-});
-const markerGeometry = new THREE.SphereGeometry(0.1, 64, 64);
+const sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+const tetrahedronMesh = new THREE.Mesh(tetrahedronGeometry, tetrahedronMaterial);
 const markerMesh = new THREE.Mesh(markerGeometry, markerMaterial);
 
-const light = new THREE.PointLight(0xffffff, 20);
+teapotMesh.position.set(4, 0, 0);
+sphereMesh.position.set(-6, 0, 0);
+cylinderMesh.position.set(-6, 0, 0);
+tetrahedronMesh.position.set(-1.5, 0, 0);
 light.position.set(0, 5, 0);
-
 markerMesh.position.copy(light.position);
 
-
-sphereMesh.add(sphereMesh);
-teapotMesh.add(teapotMesh);
-
-scene.add(sphereMesh);
-scene.add(teapotMesh)
-scene.add(tetrahedronMesh);
+scene.add(teapotMesh);
 scene.add(cylinderMesh);
+scene.add(sphereMesh);
+scene.add(tetrahedronMesh);
 scene.add(light);
 scene.add(markerMesh);
 
-tetrahedronMesh.scale.set(0.75, 0.75,0.75);
+
 
 const camera = new THREE.PerspectiveCamera(
   75,
@@ -80,7 +69,6 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   100
 );
-
 camera.position.z = 8;
 
 const canvas = document.querySelector("canvas.threejs");
@@ -89,14 +77,40 @@ const renderer = new THREE.WebGLRenderer({ canvas });
 renderer.setSize(window.innerWidth, window.innerHeight);
 
 const controls = new OrbitControls(camera, renderer.domElement);
-
 controls.update();
 
-sphereMesh.position.set(0, 0, -2);
-teapotMesh.position.set(-4, 0, 0);
+document.addEventListener("keydown", (event) => {
+  const speed = 0.5;
+  
+  if (event.shiftKey) {
+    switch (event.key) {
+      case "W":
+        light.position.y += speed;
+        break;
+      case "S":
+        light.position.y -= speed;
+        break;
+    }
+  } else {
+    switch (event.key) {
+      case "w":
+        light.position.z -= speed;
+        break;
+      case "s":
+        light.position.z += speed;
+        break;
+      case "a":
+        light.position.x -= speed;
+        break;
+      case "d":
+        light.position.x += speed;
+        break;
+    }
+  }
+  
+  markerMesh.position.copy(light.position);
+});
 
-tetrahedronMesh.position.set(1, 1, 3);
-cylinderMesh.position.set(0, 0, -2);
 
 function animate() {
   requestAnimationFrame(animate);
